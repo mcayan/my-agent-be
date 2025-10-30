@@ -1,21 +1,27 @@
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 import jwt
-from passlib.context import CryptContext
+import bcrypt
 from core.config import settings
-
-# 密码加密上下文
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """验证密码"""
-    return pwd_context.verify(plain_password, hashed_password)
+    # 将字符串转换为字节
+    password_bytes = plain_password.encode('utf-8')
+    hashed_bytes = hashed_password.encode('utf-8')
+    return bcrypt.checkpw(password_bytes, hashed_bytes)
 
 
 def get_password_hash(password: str) -> str:
     """获取密码哈希值"""
-    return pwd_context.hash(password)
+    # 将密码转换为字节
+    password_bytes = password.encode('utf-8')
+    # 生成盐并哈希密码
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(password_bytes, salt)
+    # 返回字符串形式
+    return hashed.decode('utf-8')
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
