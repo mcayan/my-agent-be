@@ -158,10 +158,9 @@ class ImageAgent:
             response = await self.llm.ainvoke([HumanMessage(content=prompt_generation)])
             generation_prompt = response.content.strip()
         except Exception as e:
-            print(f"Error generating prompt: {e}")
             generation_prompt = state["search_query"]
         
-        print(f"Generation prompt: {generation_prompt}")
+        print(f"生成的图片提示词: {generation_prompt}")
         
         # 调用图片生成 API
         reference_url = reference_image.get("presigned_url") if reference_image else None
@@ -173,10 +172,8 @@ class ImageAgent:
         
         if result:
             state["generated_image"] = result
-            print(f"Generated image: {result.get('presigned_url', 'N/A')}")
         else:
             state["generated_image"] = {}
-            print("Failed to generate image")
         
         return state
     
