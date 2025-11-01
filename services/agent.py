@@ -127,7 +127,7 @@ class ImageAgent:
         """节点2: 搜索参考图片"""
         search_query = state["search_query"]
         
-        print(f"Searching for: {search_query}")
+        print(f"开始搜索图片啦: {search_query}")
         
         result = await image_search_tool.search_image(search_query)
         
@@ -206,25 +206,33 @@ class ImageAgent:
         if state["need_image_generation"]:
             reference_image = state.get("reference_image", {})
             generated_image = state.get("generated_image", {})
+            search_query = state.get("search_query", "")
             
             response_parts = []
             
+            # 参考图片部分
             if reference_image.get("success"):
                 response_parts.append(
                     f"✅ 已找到参考图片：{reference_image.get('title', '样例图片')}"
                 )
                 response_parts.append(f"📷 参考图片链接：{reference_image['presigned_url']}")
             else:
-                response_parts.append("⚠️ 未找到合适的参考图片")
+                response_parts.append(f"🔍 正在搜索「{search_query}」相关图片...")
+                response_parts.append("⚠️ 参考图片下载失败（可能是网站防爬保护）")
+                response_parts.append("💡 将继续为您生成图片（无参考图）")
             
+            # 生成图片部分
             if generated_image.get("success"):
                 response_parts.append(
                     f"\n✨ 已根据您的需求生成新图片！"
                 )
                 response_parts.append(f"🎨 生成的图片链接：{generated_image['presigned_url']}")
-                response_parts.append(f"💡 生成提示词：{generated_image.get('prompt', '')}")
+                response_parts.append(f"💡 生成提示词：{generated_image.get('prompt', '')[:150]}...")
             else:
-                response_parts.append("\n❌ 图片生成失败，请稍后重试")
+                response_parts.append("\n⚠️ 图片生成功能当前为模拟模式")
+                response_parts.append("📝 已生成优化的提示词，可用于其他图片生成服务")
+                if generated_image.get("prompt"):
+                    response_parts.append(f"💡 提示词：{generated_image.get('prompt', '')[:150]}...")
             
             state["response"] = "\n".join(response_parts)
         

@@ -69,9 +69,31 @@ class MinIOClient:
             return None
         
         try:
-            async with httpx.AsyncClient() as client:
-                response = await client.get(image_url, timeout=30)
-                response.raise_for_status()
+            # 添加浏览器 Headers 避免被防爬
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+                'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+                'Referer': 'https://www.google.com/',
+            }
+            
+            async with httpx.AsyncClient(follow_redirects=True) as client:
+                response = await client.get(
+                    image_url, 
+                    headers=headers,
+                    timeout=30
+                )
+                
+                # 检查状态码（包括非标准状态码）
+                if response.status_code >= 400:
+                    print(f"⚠️  Image download failed: HTTP {response.status_code} from {image_url}")
+                    return None
+                
+                # 检查内容类型
+                content_type = response.headers.get('content-type', '')
+                if not content_type.startswith('image/'):
+                    print(f"⚠️  URL does not return an image: {content_type}")
+                    return None
                 
                 # 生成唯一文件名
                 file_extension = self._get_extension_from_url(image_url)
@@ -84,12 +106,20 @@ class MinIOClient:
                     filename,
                     image_data,
                     length=len(response.content),
-                    content_type=response.headers.get('content-type', 'image/jpeg')
+                    content_type=content_type or 'image/jpeg'
                 )
                 
+                print(f"✅ Image uploaded to MinIO: {filename}")
                 return filename
+                
+        except httpx.HTTPStatusError as e:
+            print(f"⚠️  HTTP error downloading image: {e.response.status_code}")
+            return None
+        except httpx.TimeoutException:
+            print(f"⚠️  Timeout downloading image from: {image_url}")
+            return None
         except Exception as e:
-            print(f"Error uploading image from URL: {e}")
+            print(f"⚠️  Error uploading image from URL: {type(e).__name__}: {str(e)[:100]}")
             return None
     
     async def upload_image_from_bytes(
