@@ -162,10 +162,10 @@ class ImageAgent:
         
         print(f"生成的图片提示词: {generation_prompt}")
         
-        # 调用图片生成 API
+        # 调用图片生成 API（豆包）
         reference_url = reference_image.get("presigned_url") if reference_image else None
         
-        result = await image_generation_tool.generate_image_simple(
+        result = await image_generation_tool.generate_image(
             prompt=generation_prompt,
             reference_image_url=reference_url
         )

@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     SERPER_API_KEY: str = ""  # 可选 - 图片搜索功能需要
     GOOGLE_API_KEY: str = ""  # 可选 - 如果不用 Google Gemini
     OPENAI_API_KEY: str = ""  # 可选 - OpenAI API Key
-    NANOBANBAN_API_KEY: str = ""  # 可选 - 图片生成 API
+    DOUBAO_API_KEY: str = ""  # 可选 - 豆包图片生成 API
     
     class Config:
         env_file = ".env"
