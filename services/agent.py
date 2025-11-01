@@ -65,6 +65,8 @@ class ImageAgent:
         
         workflow.add_edge("search_image", "generate_image")
         workflow.add_edge("generate_image", "format_response")
+
+
         workflow.add_edge("normal_chat", "format_response")
         workflow.add_edge("format_response", END)
         
